@@ -1,0 +1,15 @@
+{
+  "name": "jnovack-moxfield-downloader",
+  "version": "0.1.0",
+  "description": "Electron app that saves responses from api2.moxfield.com to disk",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "you",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^26.0.0"
+  }
+}
