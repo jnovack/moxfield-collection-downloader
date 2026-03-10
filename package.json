@@ -4,12 +4,14 @@
   "description": "Electron app that saves responses from api2.moxfield.com to disk",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "check:electron": "node scripts/check-electron.js",
+    "prestart": "npm run check:electron",
+    "start": "node scripts/start-electron.js"
   },
   "keywords": [],
   "author": "you",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^26.0.0"
+    "electron": "^40.8.0"
   }
 }
