@@ -1,12 +1,15 @@
 {
-  "name": "jnovack-moxfield-downloader",
+  "name": "moxfield-collection-downloader",
   "version": "0.1.0",
   "description": "Electron app that saves responses from api2.moxfield.com to disk",
-  "main": "main.js",
+  "main": "apps/desktop/main.js",
   "scripts": {
     "check:electron": "node scripts/check-electron.js",
     "prestart": "npm run check:electron",
-    "start": "node scripts/start-electron.js"
+    "start": "node scripts/start-electron.js",
+    "headless": "node apps/headless/run.js",
+    "headless:docker:build": "docker build -t mcd -f build/package/Dockerfile .",
+    "headless:docker:run": "docker run --rm -v \"$PWD/apps/headless/output:/app/output\" mcd"
   },
   "keywords": [],
   "author": "you",

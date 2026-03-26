@@ -1,0 +1,13 @@
+{
+  "name": "mcd",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Headless one-shot collection downloader from Moxfield",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js"
+  },
+  "dependencies": {
+    "playwright": "^1.53.0"
+  }
+}

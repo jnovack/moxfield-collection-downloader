@@ -1,21 +1,21 @@
 // preload.js
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  sendApiResponse: (payload) => {
+  sendApiResponse: payload => {
     // keep payload minimal and stringified body
     try {
-      ipcRenderer.send('save-api-response', payload);
+      ipcRenderer.send('save-api-response', payload)
     } catch (e) {
       // ignore
     }
   }
-});
+})
 
 // Inject an observer script into the page context that wraps fetch and XHR.
 // We inject by adding a <script> element so the wrappers run in page context
 // (so they observe fetch/XHR executed by the page and preserve cookies/CORS).
-(function inject() {
+;(function inject () {
   const scriptContent = `
 (function() {
   // Helper: only target api2.moxfield.com
@@ -103,30 +103,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   })();
 })();
-`;
+`
 
-  function doInject() {
+  function doInject () {
     try {
-      const script = document.createElement('script');
-      script.textContent = scriptContent;
-      script.setAttribute('data-injected-by', 'jnovack-moxfield-downloader');
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();
+      const script = document.createElement('script')
+      script.textContent = scriptContent
+      script.setAttribute('data-injected-by', 'moxfield-collection-downloader')
+      ;(document.head || document.documentElement).appendChild(script)
+      script.remove()
     } catch (e) {
-      console.error("Injection failed:", e);
+      console.error('Injection failed:', e)
     }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", doInject);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', doInject)
   } else {
-    doInject();
+    doInject()
   }
 
-  const script = document.createElement('script');
-  script.textContent = scriptContent;
+  const script = document.createElement('script')
+  script.textContent = scriptContent
   // Mark it so other code can see it's from preload
-  script.setAttribute('data-injected-by', 'jnovack-moxfield-downloader');
-  document.documentElement.appendChild(script);
-  script.remove();
-})();
+  script.setAttribute('data-injected-by', 'moxfield-collection-downloader')
+  document.documentElement.appendChild(script)
+  script.remove()
+})()

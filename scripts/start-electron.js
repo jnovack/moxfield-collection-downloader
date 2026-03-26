@@ -1,4 +1,5 @@
 const { spawn } = require('child_process');
+const path = require('path');
 
 let electronPath;
 try {
@@ -12,7 +13,8 @@ const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
 
 const extraArgs = process.argv.slice(2);
-const child = spawn(electronPath, ['.', ...extraArgs], {
+const desktopEntry = path.resolve(__dirname, '..', 'apps', 'desktop', 'main.js');
+const child = spawn(electronPath, [desktopEntry, ...extraArgs], {
   stdio: 'inherit',
   env,
   windowsHide: false

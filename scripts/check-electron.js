@@ -13,9 +13,14 @@ function warn(message) {
 const rootDir = path.resolve(__dirname, '..');
 const binElectronPath = path.join(rootDir, 'node_modules', '.bin', 'electron');
 const packageCliPath = path.join(rootDir, 'node_modules', 'electron', 'cli.js');
+const desktopEntryPath = path.join(rootDir, 'apps', 'desktop', 'main.js');
 
 if (!fs.existsSync(packageCliPath)) {
   fail('Missing node_modules/electron/cli.js. Run npm install.');
+}
+
+if (!fs.existsSync(desktopEntryPath)) {
+  fail('Missing apps/desktop/main.js desktop entrypoint.');
 }
 
 let electronBinaryPath;
