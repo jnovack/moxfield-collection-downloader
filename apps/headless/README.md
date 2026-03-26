@@ -38,7 +38,8 @@ docker run --rm \
 
 - `--id <collectionId>`: Collection ID only. Auto-builds URL as `https://moxfield.com/collection/<id>`.
 - `--url <collectionUrl>`: Full collection URL.
-- `--timeout <seconds>`: Timeout in seconds (optional, default `60`).
+- `--timeout <seconds>`: Timeout in seconds for processing (optional, default `60`).
+- `--force`: Ignore freshness guard and proceed even when output file is newer than 3 days.
 - `-q` or `--quiet`: Suppress all output.
 
 ### `--id` and `--url` together
@@ -52,9 +53,12 @@ All runtime values can be provided through environment variables:
 - `MCD_COLLECTION_ID` (or `MCD_ID`)
 - `MCD_COLLECTION_URL` (or `MCD_URL`)
 - `MCD_TIMEOUT` (seconds)
+- `MCD_FORCE` (`1/true/yes/on` or `0/false/no/off`)
 - `MCD_QUIET` (`1/true/yes/on` or `0/false/no/off`)
 
 Command-line args always take precedence over environment variables.
+
+If `output/collection.json` is newer than 3 days, the run exits with an error unless `--force` or `MCD_FORCE=1` is provided.
 
 Example:
 

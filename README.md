@@ -1,4 +1,4 @@
-# moxfield-downloader
+# moxfield-collection-downloader
 
 Moxfield collection downloader with two interfaces:
 

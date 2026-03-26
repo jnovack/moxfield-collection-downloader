@@ -14,9 +14,3 @@ Shared, runtime-neutral helpers live in:
 - Desktop-specific logic stays in `apps/desktop` (Electron main/preload, window orchestration, IPC).
 - Headless-specific logic stays in `apps/headless` (CLI parsing, Playwright runtime, one-shot export).
 - Shared behavior should be extracted only when stable and used by both interfaces.
-
-## Packaging and Release
-
-- Canonical Dockerfile path: `build/package/Dockerfile`.
-- Local build: `make headless-build` or `npm run headless:docker:build`.
-- GitHub Actions Docker publish workflow: `.github/workflows/docker-image.yml`.

@@ -46,10 +46,19 @@ function parsePositiveInt(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function formatAge(ageMs) {
+  const ageHours = ageMs / (60 * 60 * 1000);
+  if (ageHours < 24) return `${ageHours.toFixed(1)}h`;
+  return `${(ageHours / 24).toFixed(1)}d`;
+}
+
 function resolveConfig(args, env) {
   const quiet = args.quiet === true
     ? true
     : parseBoolean(env.MCD_QUIET, false);
+  const force = args.force === true
+    ? true
+    : parseBoolean(env.MCD_FORCE, false);
 
   const cliId = args.id ? String(args.id).trim() : '';
   const envId = env.MCD_COLLECTION_ID
@@ -73,6 +82,7 @@ function resolveConfig(args, env) {
 
   return {
     quiet,
+    force,
     id,
     url,
     timeoutSec,
@@ -101,9 +111,47 @@ function createLogger(quiet) {
   return { log, warn, error, fail };
 }
 
+function normalizeBuildValue(value, fallback) {
+  const raw = value === undefined || value === null ? '' : String(value).trim();
+  if (!raw) return fallback;
+  const unquoted = raw.replace(/^"+|"+$/g, '');
+  return unquoted || fallback;
+}
+
+function resolveBuildInfo(env) {
+  const version = normalizeBuildValue(env.MCD_BUILD_VERSION, 'dev');
+  const revision = normalizeBuildValue(env.MCD_BUILD_REVISION, 'unknown');
+  const buildTimestamp = normalizeBuildValue(env.MCD_BUILD_RFC3339, 'unknown');
+  const shortRevision = revision === 'unknown' ? 'unknown' : revision.slice(0, 7);
+  return { version, shortRevision, buildTimestamp };
+}
+
+async function enforceOutputFreshnessGuard({ outPath, force, warn, fail }) {
+  const FRESHNESS_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
+  let stat;
+  try {
+    stat = await fs.promises.stat(outPath);
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return;
+    fail(`Unable to read existing output file metadata: ${err.message || err}`);
+  }
+
+  const ageMs = Date.now() - stat.mtimeMs;
+  if (ageMs < FRESHNESS_WINDOW_MS) {
+    const ageText = formatAge(ageMs);
+    const msg = `Output file is too recent (${ageText} old): ${outPath}. Use --force or MCD_FORCE=1 to override.`;
+    if (force) {
+      warn(`[WARNG] ${msg} Proceeding because force is enabled.`);
+      return;
+    }
+    fail(msg);
+  }
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const config = resolveConfig(args, process.env);
+  const buildInfo = resolveBuildInfo(process.env);
   const logger = createLogger(config.quiet);
   const { log, warn, fail } = logger;
 
@@ -111,9 +159,15 @@ async function main() {
     fail('Missing input. Provide either --id <collectionId> or --url <collectionUrl> (or env vars).');
   }
 
-  log('[INFO ] ------------------------------------------------------------');
-  log('[INFO ] Starting MCD one-shot downloader');
+  log(`[INFO ] Starting mcd ${buildInfo.version} (${buildInfo.shortRevision}) built ${buildInfo.buildTimestamp}`);
+
+  await fs.promises.mkdir(config.outputDir, { recursive: true });
+  const outFile = sanitizeOutputFileName('collection.json');
+  const outPath = path.join(config.outputDir, outFile);
+  await enforceOutputFreshnessGuard({ outPath, force: config.force, warn, fail });
+
   log(`[INFO ] Quiet mode: ${config.quiet ? 'ON' : 'OFF'}`);
+  log(`[INFO ] Force mode: ${config.force ? 'ON' : 'OFF'}`);
   log(`[INFO ] Timeout: ${config.timeoutSec}s`);
   log(`[INFO ] Output directory: ${config.outputDir}`);
 
@@ -247,9 +301,6 @@ async function main() {
     const resultCount = Array.isArray(singlePageJson.data) ? singlePageJson.data.length : 0;
     log(`[INFO ] Parsed final JSON. data.length=${resultCount}`);
 
-    await fs.promises.mkdir(config.outputDir, { recursive: true });
-    const outFile = sanitizeOutputFileName(`${collectionId}.json`);
-    const outPath = path.join(config.outputDir, outFile);
     await fs.promises.writeFile(outPath, JSON.stringify(singlePageJson, null, 2), 'utf8');
     log(`[INFO ] Saved JSON to ${outPath}`);
     log('[INFO ] Completed successfully.');
@@ -257,7 +308,6 @@ async function main() {
     log('[INFO ] Closing browser...');
     await browser.close();
     log('[INFO ] Browser closed.');
-    log('[INFO ] ------------------------------------------------------------');
   }
 }
 
