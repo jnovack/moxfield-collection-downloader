@@ -1,4 +1,4 @@
-# Headless One-Shot Downloader
+# mcd - Headless One-Shot Downloader
 
 This directory contains a Dockerized, headless downloader that:
 

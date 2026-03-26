@@ -3,7 +3,7 @@
 Moxfield collection downloader with two interfaces:
 
 - Desktop Electron app (`apps/desktop`)
-- Headless runner for CI/Docker (`apps/headless`)
+- Headless runner for CI/Docker (`apps/headless`, [README.md](apps/headless/README.md))
 
 Shared helpers are in `packages/core`.
 
