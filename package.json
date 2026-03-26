@@ -1,6 +1,6 @@
 {
   "name": "moxfield-collection-downloader",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Electron app that saves responses from api2.moxfield.com to disk",
   "main": "apps/desktop/main.js",
   "scripts": {

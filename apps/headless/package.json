@@ -1,6 +1,6 @@
 {
   "name": "mcd",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Headless one-shot collection downloader from Moxfield",
   "main": "run.js",
