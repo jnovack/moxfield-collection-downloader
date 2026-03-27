@@ -3,8 +3,6 @@ name: Build Docker Image
 
 on:
   push:
-    branches:
-      - "**"
     tags:
       - "v*.*.*" # e.g. PASS on v1.2.3
       - "!v*-*" # e.g. IGNORE on v1.2.3-pre1
