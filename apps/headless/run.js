@@ -86,7 +86,7 @@ function resolveConfig(args, env) {
     id,
     url,
     timeoutSec,
-    outputDir: path.resolve(process.cwd(), 'output')
+    outputDir: path.resolve(process.cwd())
   };
 }
 
