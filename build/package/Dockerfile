@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.58.2-noble
+FROM mcr.microsoft.com/playwright:v1.59.0-noble
 
 ARG VERSION=dev
 ARG BUILD_RFC3339=unknown
