@@ -1,11 +1,12 @@
 name: Build Docker Image
-# v1.0.3
+# v1.0.4
 
 on:
   push:
+    branches:
+      - main
     tags:
-      - "v*.*.*" # e.g. PASS on v1.2.3
-      - "!v*-*" # e.g. IGNORE on v1.2.3-pre1
+      - "v*.*.*"
   workflow_dispatch:
 
 jobs:
@@ -20,14 +21,16 @@ jobs:
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             echo "is_valid=true" >> "${GITHUB_OUTPUT}"
-          elif [[ "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "is_valid=true" >> "${GITHUB_OUTPUT}"
+          elif [[ "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-((alpha|beta|pre|rc)([.-][0-9A-Za-z]+)*))?$ ]]; then
             echo "is_valid=true" >> "${GITHUB_OUTPUT}"
           else
             echo "is_valid=false" >> "${GITHUB_OUTPUT}"
-            echo "Tag ${GITHUB_REF_NAME} is not a full semver tag like v1.3.0"
+            echo "Ref ${GITHUB_REF_NAME} is not main or a valid semver tag like v1.3.0 or v1.3.0-rc.1"
           fi
 
-  push_to_registry:
+  push_to_dockerhub:
     needs: validate_tag
     if: needs.validate_tag.outputs.is_valid == 'true'
     name: Push Docker image to Docker Hub
@@ -67,7 +70,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
 
-      # Needed for multi-platform builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -82,7 +84,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            "APPLICATION=${{ vars.DOCKER_APPLICATION || github.event.repository.name }}"
+            "APPLICATION=${{ vars.DOCKER_REPOSITORY || github.event.repository.name }}"
             "BUILD_RFC3339=${{ env.RELEASE_DATE }}"
             DESCRIPTION="${{ github.event.repository.description }}"
             "PACKAGE=${{ github.repository }}"
