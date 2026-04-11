@@ -42,11 +42,11 @@ Programmatic consumers can use `pkg/mcd` directly without spawning `mcd`.
 
 ```go
 result, err := mcd.Retrieve(ctx, mcd.RetrieveOptions{
-	CollectionID: "cpfxIAEPH0aGHI-3r9F_xg",
-	Timeout:      10 * time.Second,
+   CollectionID: "cpfxIAEPH0aGHI-3r9F_xg",
+   Timeout:      10 * time.Second,
 })
 if err != nil {
-	return err
+ return err
 }
 fmt.Println(result.CollectionID, len(result.Payload))
 ```
@@ -55,15 +55,15 @@ fmt.Println(result.CollectionID, len(result.Payload))
 
 ```go
 result, err := mcd.Run(ctx, mcd.RunOptions{
-	RetrieveOptions: mcd.RetrieveOptions{
-		CollectionID: "cpfxIAEPH0aGHI-3r9F_xg",
-		Timeout:      10 * time.Second,
-	},
-	OutputPath: "./collection.json",
-	Force:      false,
+    RetrieveOptions: mcd.RetrieveOptions{
+        CollectionID: "cpfxIAEPH0aGHI-3r9F_xg",
+        Timeout:      10 * time.Second,
+    },
+    OutputPath: "./collection.json",
+    Force:      false,
 })
 if err != nil {
-	return err
+    return err
 }
 fmt.Println(result.OutputPath, result.Stats.Requests)
 ```
@@ -73,16 +73,18 @@ fmt.Println(result.OutputPath, result.Stats.Requests)
 ```go
 resolved, err := mcd.ResolveInput("", "https://moxfield.com/collection/cpfxIAEPH0aGHI-3r9F_xg")
 if err != nil {
-	return err
+    return err
 }
 fmt.Println(resolved.CollectionID, resolved.CollectionURL)
 ```
 
 Package API behavior:
+
 - `mcd.Retrieve` resolves/validates input and fetches payload only.
 - `mcd.Run` also enforces freshness + writes output.
 
 CLI-only behavior:
+
 - Flag/env parsing and process exit codes are handled only by `cmd/mcd`.
 
 ## Disclaimer
