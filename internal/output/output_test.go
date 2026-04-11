@@ -1,6 +1,7 @@
 package output
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -57,5 +58,34 @@ func TestEnforceFreshness(t *testing.T) {
 	}
 	if err := EnforceFreshness(out, false); err != nil {
 		t.Fatalf("old file should pass: %v", err)
+	}
+}
+
+// TestWriteJSONFile verifies pretty JSON writing and overwrite behavior.
+func TestWriteJSONFile(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	out := filepath.Join(dir, "nested", "collection.json")
+
+	first := map[string]any{"value": 1}
+	if err := WriteJSONFile(out, first); err != nil {
+		t.Fatalf("first write failed: %v", err)
+	}
+
+	second := map[string]any{"value": 2}
+	if err := WriteJSONFile(out, second); err != nil {
+		t.Fatalf("second write failed: %v", err)
+	}
+
+	blob, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatalf("read failed: %v", err)
+	}
+	var parsed map[string]any
+	if err := json.Unmarshal(blob, &parsed); err != nil {
+		t.Fatalf("invalid json written: %v", err)
+	}
+	if parsed["value"] != float64(2) {
+		t.Fatalf("unexpected value: %#v", parsed["value"])
 	}
 }

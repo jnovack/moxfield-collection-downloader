@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -13,9 +14,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/jnovack/moxfield-collection-downloader/internal/buildinfo"
-	"github.com/jnovack/moxfield-collection-downloader/internal/downloader"
-	"github.com/jnovack/moxfield-collection-downloader/internal/moxfield"
-	"github.com/jnovack/moxfield-collection-downloader/internal/output"
+	"github.com/jnovack/moxfield-collection-downloader/pkg/mcd"
 )
 
 var (
@@ -90,47 +89,36 @@ func main() {
 		Msg("run.start")
 	runStart := time.Now()
 
-	if err := output.EnforceFreshness(cfg.OutputPath, cfg.Force); err != nil {
-		log.Error().Err(err).Str("output_path", cfg.OutputPath).Msg("freshness guard blocked run")
-		os.Exit(1)
-	}
-
-	browser, err := downloader.NewPlaywrightBrowser()
-	if err != nil {
-		log.Error().Err(err).Msg("Unable to start browser")
-		os.Exit(1)
-	}
-	defer func() {
-		if cerr := browser.Close(); cerr != nil {
-			log.Warn().Err(cerr).Msg("Failed closing browser")
-		}
-	}()
-
-	payload, stats, err := downloader.Retrieve(context.Background(), browser, downloader.Options{
-		CollectionID:  cfg.CollectionID,
-		CollectionURL: cfg.CollectionURL,
-		BaseTimeout:   cfg.Timeout,
-		Logger:        zLogger{},
+	runResult, err := mcd.Run(context.Background(), mcd.RunOptions{
+		RetrieveOptions: mcd.RetrieveOptions{
+			CollectionID:  cfg.CollectionID,
+			CollectionURL: cfg.CollectionURL,
+			Timeout:       cfg.Timeout,
+			Logger:        zLogger{},
+		},
+		OutputPath: cfg.OutputPath,
+		Force:      cfg.Force,
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("Download failed")
+		switch {
+		case errors.Is(err, mcd.ErrFreshnessBlocked):
+			log.Error().Err(err).Str("output_path", cfg.OutputPath).Msg("freshness guard blocked run")
+		case errors.Is(err, mcd.ErrOutputWrite):
+			log.Error().Err(err).Msg("Failed writing output")
+		default:
+			log.Error().Err(err).Msg("Download failed")
+		}
 		os.Exit(1)
 	}
-
-	if err := output.WriteJSONFile(cfg.OutputPath, payload); err != nil {
-		log.Error().Err(err).Msg("Failed writing output")
-		os.Exit(1)
-	}
-
-	log.Info().Str("output_path", cfg.OutputPath).Msg("saved collection JSON")
+	log.Info().Str("output_path", runResult.OutputPath).Msg("saved collection JSON")
 	log.Debug().
 		Dur("duration", time.Since(runStart)).
-		Int("requests", stats.Requests).
-		Int("pages_fetched", stats.PagesFetched).
-		Int("timeout_backoffs", stats.TimeoutBackoffs).
-		Int("request_size_backoffs", stats.PageSizeBackoffs).
-		Int("duplicates_skipped", stats.DuplicatesSkipped).
-		Int("final_page_size", stats.FinalPageSize).
+		Int("requests", runResult.Stats.Requests).
+		Int("pages_fetched", runResult.Stats.PagesFetched).
+		Int("timeout_backoffs", runResult.Stats.TimeoutBackoffs).
+		Int("request_size_backoffs", runResult.Stats.PageSizeBackoffs).
+		Int("duplicates_skipped", runResult.Stats.DuplicatesSkipped).
+		Int("final_page_size", runResult.Stats.FinalPageSize).
 		Msg("run.complete")
 	log.Info().Msg("Completed successfully")
 }
@@ -173,31 +161,18 @@ func parseConfig(args []string, environ []string) (config, bool, error) {
 	if outputValue == "" {
 		outputValue = strings.TrimSpace(env["MCD_OUTPUT"])
 	}
-	cfg.OutputPath = output.ResolveOutputPath(outputValue)
+	cfg.OutputPath = mcd.ResolveOutputPath(outputValue)
 
 	if *showVersion {
 		return cfg, true, nil
 	}
 
-	if cfg.CollectionID == "" && cfg.CollectionURL == "" {
-		return config{}, false, fmt.Errorf("missing input: provide --id or --url")
+	resolved, err := mcd.ResolveInput(cfg.CollectionID, cfg.CollectionURL)
+	if err != nil {
+		return config{}, false, err
 	}
-
-	if cfg.CollectionID != "" {
-		if !moxfield.IsValidCollectionID(cfg.CollectionID) {
-			return config{}, false, fmt.Errorf("invalid collection ID %q: must be 1–32 alphanumeric, underscore, or hyphen characters", cfg.CollectionID)
-		}
-		cfg.CollectionURL = moxfield.BuildCollectionURLFromID(cfg.CollectionID)
-	} else {
-		if !moxfield.IsValidCollectionURL(cfg.CollectionURL) {
-			return config{}, false, fmt.Errorf("invalid collection URL: expected https://moxfield.com/collection/<id>")
-		}
-		cfg.CollectionID = moxfield.ExtractCollectionIDFromURL(cfg.CollectionURL)
-	}
-
-	if cfg.CollectionID == "" {
-		return config{}, false, fmt.Errorf("unable to resolve collection ID")
-	}
+	cfg.CollectionID = resolved.CollectionID
+	cfg.CollectionURL = resolved.CollectionURL
 	return cfg, *showVersion, nil
 }
 

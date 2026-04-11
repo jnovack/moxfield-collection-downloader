@@ -46,12 +46,50 @@ func EnforceFreshness(outPath string, force bool) error {
 
 // WriteJSONFile writes payload as pretty JSON to outPath, creating parent directories.
 func WriteJSONFile(outPath string, payload any) error {
-	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+	dir := filepath.Dir(outPath)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
 	blob, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(outPath, blob, 0o644)
+
+	tmpFile, err := os.CreateTemp(dir, ".mcd-*.tmp")
+	if err != nil {
+		return err
+	}
+	tmpPath := tmpFile.Name()
+	cleanup := true
+	defer func() {
+		if cleanup {
+			_ = os.Remove(tmpPath)
+		}
+	}()
+
+	if _, err := tmpFile.Write(blob); err != nil {
+		_ = tmpFile.Close()
+		return err
+	}
+	if err := tmpFile.Chmod(0o644); err != nil {
+		_ = tmpFile.Close()
+		return err
+	}
+	if err := tmpFile.Close(); err != nil {
+		return err
+	}
+
+	if err := os.Rename(tmpPath, outPath); err != nil {
+		if removeErr := os.Remove(outPath); removeErr == nil {
+			if secondErr := os.Rename(tmpPath, outPath); secondErr == nil {
+				cleanup = false
+				return nil
+			} else {
+				return secondErr
+			}
+		}
+		return err
+	}
+	cleanup = false
+	return nil
 }
