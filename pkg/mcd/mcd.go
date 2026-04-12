@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jnovack/moxfield-collection-downloader/internal/downloader"
-	"github.com/jnovack/moxfield-collection-downloader/internal/moxfield"
-	"github.com/jnovack/moxfield-collection-downloader/internal/output"
+	"github.com/jnovack/moxfield-collection-downloader/v2/internal/downloader"
+	"github.com/jnovack/moxfield-collection-downloader/v2/internal/moxfield"
+	"github.com/jnovack/moxfield-collection-downloader/v2/internal/output"
 )
 
 var (

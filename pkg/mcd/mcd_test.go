@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jnovack/moxfield-collection-downloader/internal/downloader"
+	"github.com/jnovack/moxfield-collection-downloader/v2/internal/downloader"
 )
 
 type fakeBrowser struct {

@@ -13,8 +13,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/jnovack/moxfield-collection-downloader/internal/buildinfo"
-	"github.com/jnovack/moxfield-collection-downloader/pkg/mcd"
+	"github.com/jnovack/moxfield-collection-downloader/v2/internal/buildinfo"
+	"github.com/jnovack/moxfield-collection-downloader/v2/pkg/mcd"
 )
 
 var (

@@ -1,4 +1,4 @@
-module github.com/jnovack/moxfield-collection-downloader
+module github.com/jnovack/moxfield-collection-downloader/v2
 
 go 1.25.0
 
