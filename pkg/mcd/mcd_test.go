@@ -13,25 +13,30 @@ import (
 	"github.com/jnovack/moxfield-collection-downloader/v2/internal/downloader"
 )
 
+// fakeBrowser is a controllable BrowserClient stub used in package tests.
 type fakeBrowser struct {
 	boot      downloader.BootInfo
 	fetchFunc func(req downloader.FetchRequest) (downloader.FetchPageResult, error)
 	closed    bool
 }
 
+// Bootstrap returns preconfigured bootstrap metadata.
 func (f *fakeBrowser) Bootstrap(context.Context, string, string, time.Duration) (downloader.BootInfo, error) {
 	return f.boot, nil
 }
 
+// FetchPage delegates page retrieval to the configured callback.
 func (f *fakeBrowser) FetchPage(_ context.Context, req downloader.FetchRequest) (downloader.FetchPageResult, error) {
 	return f.fetchFunc(req)
 }
 
+// Close marks the stub as closed.
 func (f *fakeBrowser) Close() error {
 	f.closed = true
 	return nil
 }
 
+// TestResolveInput verifies that collection IDs and URLs normalize correctly.
 func TestResolveInput(t *testing.T) {
 	got, err := ResolveInput("abc123", "")
 	if err != nil {
@@ -53,6 +58,7 @@ func TestResolveInput(t *testing.T) {
 	}
 }
 
+// TestResolveInputErrors verifies invalid input combinations return ErrInvalidInput.
 func TestResolveInputErrors(t *testing.T) {
 	_, err := ResolveInput("", "")
 	if !errors.Is(err, ErrInvalidInput) {
@@ -70,6 +76,7 @@ func TestResolveInputErrors(t *testing.T) {
 	}
 }
 
+// TestRetrieveWithMockBrowser verifies Retrieve success path and browser cleanup.
 func TestRetrieveWithMockBrowser(t *testing.T) {
 	origFactory := newBrowserClient
 	t.Cleanup(func() { newBrowserClient = origFactory })
@@ -106,6 +113,7 @@ func TestRetrieveWithMockBrowser(t *testing.T) {
 	}
 }
 
+// TestRetrieveMapsPayloadMismatch verifies integrity mismatch maps to ErrPayloadMismatch.
 func TestRetrieveMapsPayloadMismatch(t *testing.T) {
 	origFactory := newBrowserClient
 	t.Cleanup(func() { newBrowserClient = origFactory })
@@ -133,6 +141,7 @@ func TestRetrieveMapsPayloadMismatch(t *testing.T) {
 	}
 }
 
+// TestRunFreshnessBlocked verifies freshness guard enforcement without force mode.
 func TestRunFreshnessBlocked(t *testing.T) {
 	dir := t.TempDir()
 	outPath := filepath.Join(dir, "collection.json")
@@ -156,6 +165,7 @@ func TestRunFreshnessBlocked(t *testing.T) {
 	}
 }
 
+// TestRunWritesOutputWithForce verifies Run overwrites output when force mode is enabled.
 func TestRunWritesOutputWithForce(t *testing.T) {
 	origFactory := newBrowserClient
 	t.Cleanup(func() { newBrowserClient = origFactory })
@@ -196,6 +206,7 @@ func TestRunWritesOutputWithForce(t *testing.T) {
 	}
 }
 
+// fakeResponse builds a synthetic successful API response payload.
 func fakeResponse(totalResults, count, start int) downloader.FetchPageResult {
 	data := make([]map[string]any, 0, count)
 	for i := 0; i < count; i++ {

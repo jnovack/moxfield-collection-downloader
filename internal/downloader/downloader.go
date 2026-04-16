@@ -14,8 +14,10 @@ import (
 	"time"
 )
 
+// fallbackPageSizes defines descending request-size fallback steps used after a failed attempt.
 var fallbackPageSizes = []int{20000, 10000, 5000, 1000, 500, 100}
 
+// timeoutMultipliers defines timeout backoff factors for retryable failures.
 var timeoutMultipliers = []int{1, 2, 4}
 
 // ErrIntegrityMismatch indicates that aggregated card count does not match totalResults.
@@ -525,6 +527,7 @@ func classifyError(err error) error {
 	return err
 }
 
+// timeoutsToStrings renders timeout values for structured logging fields.
 func timeoutsToStrings(timeouts []time.Duration) []string {
 	out := make([]string, 0, len(timeouts))
 	for _, timeout := range timeouts {

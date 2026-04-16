@@ -97,6 +97,9 @@ type RunResult struct {
 	OutputPath string
 }
 
+// newBrowserClient builds the browser implementation used by Retrieve.
+//
+// It is package-scoped to allow tests to replace the browser dependency.
 var newBrowserClient = func() (downloader.BrowserClient, error) {
 	return downloader.NewPlaywrightBrowser()
 }
@@ -205,26 +208,32 @@ func Run(ctx context.Context, opts RunOptions) (RunResult, error) {
 	}, nil
 }
 
+// loggerAdapter bridges the public Logger interface to internal downloader logging.
 type loggerAdapter struct {
 	logger Logger
 }
 
+// Info forwards info-level events to the wrapped logger.
 func (l loggerAdapter) Info(msg string, fields map[string]any) {
 	l.logger.Info(msg, fields)
 }
 
+// Warn forwards warn-level events to the wrapped logger.
 func (l loggerAdapter) Warn(msg string, fields map[string]any) {
 	l.logger.Warn(msg, fields)
 }
 
+// Debug forwards debug-level events to the wrapped logger.
 func (l loggerAdapter) Debug(msg string, fields map[string]any) {
 	l.logger.Debug(msg, fields)
 }
 
+// Trace forwards trace-level events to the wrapped logger.
 func (l loggerAdapter) Trace(msg string, fields map[string]any) {
 	l.logger.Trace(msg, fields)
 }
 
+// statsFromDownloader maps internal retrieval counters to the public RunStats type.
 func statsFromDownloader(stats downloader.RunStats) RunStats {
 	return RunStats{
 		Requests:          stats.Requests,

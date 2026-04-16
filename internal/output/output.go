@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// freshnessWindow is the minimum age required before overwriting output without force mode.
 const freshnessWindow = 72 * time.Hour
 
 // ResolveOutputPath returns the final file path for collection output.

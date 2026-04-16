@@ -11,17 +11,20 @@ import (
 	"time"
 )
 
+// logEntry captures one structured log emission for assertions.
 type logEntry struct {
 	level  string
 	msg    string
 	fields map[string]any
 }
 
+// recordingLogger stores log records in memory for test validation.
 type recordingLogger struct {
 	mu      sync.Mutex
 	entries []logEntry
 }
 
+// add appends one structured log event to the in-memory buffer.
 func (l *recordingLogger) add(level, msg string, fields map[string]any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -32,11 +35,19 @@ func (l *recordingLogger) add(level, msg string, fields map[string]any) {
 	l.entries = append(l.entries, logEntry{level: level, msg: msg, fields: cloned})
 }
 
-func (l *recordingLogger) Info(msg string, fields map[string]any)  { l.add("info", msg, fields) }
-func (l *recordingLogger) Warn(msg string, fields map[string]any)  { l.add("warn", msg, fields) }
+// Info records an info-level entry.
+func (l *recordingLogger) Info(msg string, fields map[string]any) { l.add("info", msg, fields) }
+
+// Warn records a warn-level entry.
+func (l *recordingLogger) Warn(msg string, fields map[string]any) { l.add("warn", msg, fields) }
+
+// Debug records a debug-level entry.
 func (l *recordingLogger) Debug(msg string, fields map[string]any) { l.add("debug", msg, fields) }
+
+// Trace records a trace-level entry.
 func (l *recordingLogger) Trace(msg string, fields map[string]any) { l.add("trace", msg, fields) }
 
+// has reports whether a log message exists at the given level.
 func (l *recordingLogger) has(level, msg string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()

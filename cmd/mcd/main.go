@@ -18,9 +18,12 @@ import (
 )
 
 var (
-	version      = buildinfo.DefaultVersion
+	// version is the semantic version injected at build time.
+	version = buildinfo.DefaultVersion
+	// buildRFC3339 is the build timestamp injected at build time.
 	buildRFC3339 = buildinfo.DefaultBuildRFC3339
-	revision     = buildinfo.DefaultRevision
+	// revision is the VCS revision injected at build time.
+	revision = buildinfo.DefaultRevision
 )
 
 // config contains the resolved runtime settings for a downloader execution.
