@@ -17,6 +17,8 @@ import (
 	"github.com/jnovack/moxfield-collection-downloader/v2/pkg/mcd"
 )
 
+// ─── Build Metadata ────────────────────────────────────────────────────────────
+
 var (
 	// version is the semantic version injected at build time.
 	version = buildinfo.DefaultVersion
@@ -25,6 +27,8 @@ var (
 	// revision is the VCS revision injected at build time.
 	revision = buildinfo.DefaultRevision
 )
+
+// ─── Runtime Config and Logging Adapters ──────────────────────────────────────
 
 // config contains the resolved runtime settings for a downloader execution.
 type config struct {
@@ -50,6 +54,8 @@ func (zLogger) Debug(msg string, fields map[string]any) { log.Debug().Fields(fie
 
 // Trace writes trace messages via zerolog.
 func (zLogger) Trace(msg string, fields map[string]any) { log.Trace().Fields(fields).Msg(msg) }
+
+// ─── Main Execution ────────────────────────────────────────────────────────────
 
 // main is the CLI entrypoint for the mcd binary.
 func main() {
@@ -126,6 +132,8 @@ func main() {
 	log.Info().Msg("Completed successfully")
 }
 
+// ─── Config Parsing and Validation ─────────────────────────────────────────────
+
 // parseConfig resolves CLI flags and environment variables into runtime config.
 func parseConfig(args []string, environ []string) (config, bool, error) {
 	flag.CommandLine = flag.NewFlagSet("mcd", flag.ContinueOnError)
@@ -190,6 +198,8 @@ func configureLogging(logLevel string) error {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	return nil
 }
+
+// ─── Parsing Helpers ───────────────────────────────────────────────────────────
 
 // envMap converts KEY=VALUE environment entries into a map.
 func envMap(environ []string) map[string]string {

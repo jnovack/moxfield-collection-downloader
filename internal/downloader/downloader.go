@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+// ─── Retry and Backoff Parameters ──────────────────────────────────────────────
+
 // fallbackPageSizes defines descending request-size fallback steps used after a failed attempt.
 var fallbackPageSizes = []int{20000, 10000, 5000, 1000, 500, 100}
 
@@ -22,6 +24,8 @@ var timeoutMultipliers = []int{1, 2, 4}
 
 // ErrIntegrityMismatch indicates that aggregated card count does not match totalResults.
 var ErrIntegrityMismatch = errors.New("integrity mismatch")
+
+// ─── Core Interfaces and Data Types ────────────────────────────────────────────
 
 // Logger is the minimal logging contract used by downloader internals.
 type Logger interface {
@@ -98,6 +102,8 @@ type RunStats struct {
 	DuplicatesSkipped int
 	FinalPageSize     int
 }
+
+// ─── Retrieval Orchestration ───────────────────────────────────────────────────
 
 // Retrieve runs bootstrap, single-shot fetch, and adaptive fallback strategies.
 func Retrieve(ctx context.Context, browser BrowserClient, opts Options) (map[string]any, RunStats, error) {
@@ -374,6 +380,8 @@ func fetchOnce(ctx context.Context, browser BrowserClient, templateURL string, t
 
 	return Payload{TotalResults: totalResults, Data: merged, Raw: canonical}, nil
 }
+
+// ─── Retry and Merge Helpers ───────────────────────────────────────────────────
 
 // timeoutCandidates returns bounded timeout values based on the configured base timeout.
 func timeoutCandidates(base time.Duration) []time.Duration {

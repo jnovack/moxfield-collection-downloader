@@ -11,6 +11,8 @@ import (
 	"github.com/jnovack/moxfield-collection-downloader/v2/internal/output"
 )
 
+// ─── Public Error Surface ──────────────────────────────────────────────────────
+
 var (
 	// ErrInvalidInput indicates invalid or missing collection input.
 	ErrInvalidInput = errors.New("invalid input")
@@ -28,6 +30,8 @@ const (
 	// DefaultTimeout is the default request timeout used by the package API.
 	DefaultTimeout = 10 * time.Second
 )
+
+// ─── Public Types ──────────────────────────────────────────────────────────────
 
 // Logger defines the logging contract accepted by the public API.
 type Logger interface {
@@ -103,6 +107,8 @@ type RunResult struct {
 var newBrowserClient = func() (downloader.BrowserClient, error) {
 	return downloader.NewPlaywrightBrowser()
 }
+
+// ─── Public API Entry Points ───────────────────────────────────────────────────
 
 // ResolveInput validates and normalizes collection input.
 func ResolveInput(collectionID, collectionURL string) (ResolvedInput, error) {
@@ -207,6 +213,8 @@ func Run(ctx context.Context, opts RunOptions) (RunResult, error) {
 		OutputPath:     outPath,
 	}, nil
 }
+
+// ─── Internal Adapters ─────────────────────────────────────────────────────────
 
 // loggerAdapter bridges the public Logger interface to internal downloader logging.
 type loggerAdapter struct {
