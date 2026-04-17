@@ -41,6 +41,16 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags "${GO_LDFLAGS}" -o /go/bin/${APPLICATION} ./cmd/${APPLICATION}
 
+FROM --platform=$BUILDPLATFORM golang:1.25-bookworm AS playwright
+WORKDIR /src
+COPY go.mod go.sum ./
+ENV PLAYWRIGHT_DRIVER_PATH=/ms-playwright-go \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN --mount=type=cache,target=/go/pkg/mod \
+    PW_GO_VERSION="$(go list -m -f '{{.Version}}' github.com/playwright-community/playwright-go)" && \
+    go install "github.com/playwright-community/playwright-go/cmd/playwright@${PW_GO_VERSION}" && \
+    /go/bin/playwright install chromium
+
 FROM mcr.microsoft.com/playwright:v1.59.0-noble
 
 ARG APPLICATION="mcd"
@@ -62,6 +72,8 @@ LABEL org.opencontainers.image.ref.name="${PACKAGE}" \
     org.opencontainers.image.url="https://hub.docker.com/r/${PACKAGE}/"
 
 COPY --from=build /go/bin/${APPLICATION} /app
+COPY --from=playwright /ms-playwright-go /ms-playwright-go
+COPY --from=playwright /ms-playwright /ms-playwright
 
 RUN useradd --uid 10001 --create-home --home-dir /home/appuser --shell /sbin/nologin appuser \
     && mkdir -p /data && chown appuser:appuser /data
@@ -69,5 +81,8 @@ RUN useradd --uid 10001 --create-home --home-dir /home/appuser --shell /sbin/nol
 USER appuser
 
 WORKDIR /data
+
+ENV PLAYWRIGHT_DRIVER_PATH=/ms-playwright-go \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 ENTRYPOINT ["/app"]

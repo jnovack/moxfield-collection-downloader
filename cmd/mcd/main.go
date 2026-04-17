@@ -195,7 +195,7 @@ func configureLogging(logLevel string) error {
 	}
 	zerolog.TimeFieldFormat = time.RFC3339
 	zerolog.SetGlobalLevel(parsedLevel)
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "15:04:05"})
 	return nil
 }
 

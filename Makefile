@@ -19,7 +19,7 @@ OUTPUT ?= ./cache/collection.json
 FORCE ?= 0
 BUILD_DIR ?= dist
 
-.PHONY: help build test test docker-build run
+.PHONY: help build test check-playwright-docker docker-build run
 
 help:
 	@echo "Targets:"
@@ -34,6 +34,9 @@ build:
 
 test:
 	go test ./...
+
+check-playwright-docker:
+	./scripts/check-playwright-docker.sh
 
 docker-build:
 	docker buildx build \

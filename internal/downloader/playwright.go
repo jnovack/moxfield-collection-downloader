@@ -7,6 +7,8 @@ import (
 	"io"
 	"log/slog"
 	"net/url"
+	"os"
+	rdebug "runtime/debug"
 	"strings"
 	"time"
 
@@ -74,6 +76,13 @@ func (h zerologSlogHandler) WithGroup(name string) slog.Handler {
 
 // NewPlaywrightBrowser initializes Playwright, launches Chromium, and creates a page.
 func NewPlaywrightBrowser() (*PlaywrightBrowser, error) {
+	log.Debug().
+		Str("component", "playwright").
+		Str("playwright_go_version", resolvedPlaywrightGoVersion()).
+		Str("playwright_driver_path", firstNonEmpty(strings.TrimSpace(os.Getenv("PLAYWRIGHT_DRIVER_PATH")), "(default)")).
+		Str("playwright_browsers_path", firstNonEmpty(strings.TrimSpace(os.Getenv("PLAYWRIGHT_BROWSERS_PATH")), "(default)")).
+		Msg("initializing playwright")
+
 	options := &playwright.RunOptions{
 		Stderr: io.Discard,
 		Stdout: io.Discard,
@@ -309,6 +318,30 @@ func (p *PlaywrightBrowser) fetchJSON(rawURL string, timeout time.Duration) (fet
 		BodyText:    parsed.BodyText,
 		TemplateURL: parsed.TemplateURL,
 	}, nil
+}
+
+// resolvedPlaywrightGoVersion returns the linked playwright-go module version.
+func resolvedPlaywrightGoVersion() string {
+	info, ok := rdebug.ReadBuildInfo()
+	if !ok || info == nil {
+		return "unknown"
+	}
+	for _, dep := range info.Deps {
+		if dep.Path == "github.com/playwright-community/playwright-go" {
+			return dep.Version
+		}
+	}
+	return "unknown"
+}
+
+// firstNonEmpty returns the first non-empty string from values.
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 // Close releases Playwright browser/page resources.

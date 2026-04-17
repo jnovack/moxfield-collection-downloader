@@ -42,6 +42,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Verify Playwright Docker install is module-derived
+        run: ./scripts/check-playwright-docker.sh
+
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
